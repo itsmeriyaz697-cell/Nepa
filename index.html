@@ -1,108 +1,409 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nepa AI</title>
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#0d1117">
-    <style>
-        * { box-sizing: border-box; font-family: system-ui, -apple-system, sans-serif; }
-        body { background-color: #0d1117; color: #c9d1d9; margin: 0; padding: 40px 20px; display: flex; justify-content: center; }
-        .app-container { width: 100%; max-width: 450px; background: #161b22; border: 1px solid #30363d; border-radius: 12px; padding: 30px; box-shadow: 0 8px 24px rgba(0,0,0,0.5); }
-        .header { text-align: center; margin-bottom: 25px; }
-        .header h1 { color: #58a6ff; font-size: 28px; margin: 0 0 5px 0; }
-        .header p { color: #8b949e; font-size: 14px; margin: 0; }
-        input[type="text"] { width: 100%; background: #0d1117; border: 1px solid #30363d; color: #f0f6fc; padding: 14px; font-size: 16px; border-radius: 6px; outline: none; margin-bottom: 15px; }
-        input[type="text"]:focus { border-color: #58a6ff; }
-        button { width: 100%; background: #238636; color: white; border: none; padding: 14px; font-size: 16px; font-weight: 600; border-radius: 6px; cursor: pointer; }
-        button:hover { background: #2ea44f; }
-        hr { border: 0; height: 1px; background: #30363d; margin: 25px 0; }
-        .section-title { font-size: 13px; text-transform: uppercase; color: #8b949e; margin-bottom: 12px; letter-spacing: 0.5px; }
-        .list-box { max-height: 250px; overflow-y: auto; }
-        ul { list-style: none; padding: 0; margin: 0; }
-        li { background: #21262d; border: 1px solid #30363d; padding: 12px; border-radius: 6px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
-        .name { color: #f0f6fc; font-weight: 500; }
-        .time { font-size: 11px; color: #8b949e; background: #0d1117; padding: 4px 8px; border-radius: 4px; }
-        .empty { color: #8b949e; text-align: center; font-style: italic; font-size: 14px; }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>RC Agency – Task Submission</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Caveat:wght@600&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --green: #25D366;
+      --green-dark: #128C7E;
+      --green-light: #dcf8c6;
+      --bg: #ece5dd;
+      --white: #ffffff;
+      --bubble: #ffffff;
+      --text: #111b21;
+      --muted: #667781;
+      --border: #d1d7db;
+      --accent: #075E54;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    /* Phone frame */
+    .phone {
+      width: 100%;
+      max-width: 420px;
+      background: var(--bg);
+      border-radius: 18px;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+      display: flex;
+      flex-direction: column;
+      min-height: 600px;
+    }
+
+    /* Header */
+    .chat-header {
+      background: var(--accent);
+      color: #fff;
+      padding: 14px 16px 12px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      position: relative;
+    }
+    .avatar {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      background: var(--green);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Caveat', cursive;
+      font-size: 18px;
+      font-weight: 600;
+      color: #fff;
+      flex-shrink: 0;
+    }
+    .header-info h1 {
+      font-size: 16px;
+      font-weight: 600;
+      line-height: 1.2;
+      letter-spacing: 0.01em;
+    }
+    .header-info .status {
+      font-size: 12px;
+      color: rgba(255,255,255,0.75);
+      margin-top: 1px;
+    }
+    .status-dot {
+      display: inline-block;
+      width: 7px; height: 7px;
+      background: #4ade80;
+      border-radius: 50%;
+      margin-right: 4px;
+      vertical-align: middle;
+    }
+    .header-icons {
+      margin-left: auto;
+      display: flex;
+      gap: 18px;
+      opacity: 0.9;
+    }
+    .header-icons svg { width: 20px; height: 20px; fill: #fff; }
+
+    /* Chat body */
+    .chat-body {
+      flex: 1;
+      padding: 14px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      overflow-y: auto;
+    }
+
+    /* Date label */
+    .date-label {
+      text-align: center;
+      font-size: 11.5px;
+      color: var(--muted);
+      background: rgba(255,255,255,0.6);
+      border-radius: 8px;
+      padding: 3px 10px;
+      align-self: center;
+    }
+
+    /* Chat bubbles */
+    .bubble-wrap { display: flex; flex-direction: column; }
+    .bubble-wrap.incoming { align-items: flex-start; }
+    .bubble-wrap.outgoing { align-items: flex-end; }
+
+    .bubble {
+      max-width: 82%;
+      padding: 9px 12px 7px;
+      border-radius: 8px;
+      font-size: 14px;
+      line-height: 1.45;
+      position: relative;
+      word-break: break-word;
+    }
+    .bubble-wrap.incoming .bubble {
+      background: var(--white);
+      color: var(--text);
+      border-top-left-radius: 0;
+    }
+    .bubble-wrap.outgoing .bubble {
+      background: var(--green-light);
+      color: var(--text);
+      border-top-right-radius: 0;
+    }
+    .bubble-time {
+      font-size: 11px;
+      color: var(--muted);
+      text-align: right;
+      margin-top: 3px;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 3px;
+    }
+    .tick { color: #53bdeb; font-size: 14px; }
+    .bubble strong { font-weight: 600; color: var(--accent); }
+
+    /* Typing indicator */
+    .typing {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      background: var(--white);
+      border-radius: 8px;
+      border-top-left-radius: 0;
+      padding: 10px 14px;
+      width: fit-content;
+    }
+    .typing span {
+      width: 7px; height: 7px;
+      background: var(--muted);
+      border-radius: 50%;
+      animation: bounce 1.2s infinite;
+    }
+    .typing span:nth-child(2) { animation-delay: 0.2s; }
+    .typing span:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes bounce {
+      0%, 60%, 100% { transform: translateY(0); }
+      30% { transform: translateY(-5px); }
+    }
+
+    /* Input area */
+    .chat-input-area {
+      background: #f0f2f5;
+      padding: 10px 10px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      border-top: 1px solid var(--border);
+    }
+    .input-row {
+      display: flex;
+      align-items: flex-end;
+      gap: 8px;
+    }
+    .emoji-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 22px;
+      padding: 4px;
+      flex-shrink: 0;
+      line-height: 1;
+    }
+    .input-box {
+      flex: 1;
+      background: var(--white);
+      border: none;
+      border-radius: 22px;
+      padding: 10px 16px;
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      color: var(--text);
+      resize: none;
+      outline: none;
+      max-height: 110px;
+      overflow-y: auto;
+      line-height: 1.5;
+    }
+    .input-box::placeholder { color: var(--muted); }
+    .send-btn {
+      width: 44px; height: 44px;
+      border-radius: 50%;
+      background: var(--green);
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: background 0.15s, transform 0.1s;
+    }
+    .send-btn:hover { background: var(--green-dark); }
+    .send-btn:active { transform: scale(0.93); }
+    .send-btn svg { width: 20px; height: 20px; fill: #fff; margin-left: 2px; }
+
+    /* Success toast */
+    .toast {
+      display: none;
+      background: #25D366;
+      color: #fff;
+      font-size: 13px;
+      font-weight: 500;
+      padding: 9px 16px;
+      border-radius: 20px;
+      text-align: center;
+      animation: fadeIn 0.3s ease;
+    }
+    .toast.show { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* WhatsApp watermark */
+    .watermark {
+      text-align: center;
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+    }
+    .watermark svg { width: 14px; height: 14px; fill: var(--green); }
+  </style>
 </head>
 <body>
 
-<div class="app-container">
-    <div class="header">
-        <h1>Nepa AI</h1>
-        <p>Live Distributed Engine</p>
+<div class="phone">
+
+  <!-- Header -->
+  <div class="chat-header">
+    <div class="avatar">RC</div>
+    <div class="header-info">
+      <h1>RC Agency</h1>
+      <div class="status"><span class="status-dot"></span>online</div>
+    </div>
+    <div class="header-icons">
+      <!-- Video icon -->
+      <svg viewBox="0 0 24 24"><path d="M17 10.5V7a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-3.5l4 4v-11l-4 4z"/></svg>
+      <!-- Phone icon -->
+      <svg viewBox="0 0 24 24"><path d="M6.62 10.79a15.05 15.05 0 0 0 6.59 6.59l2.2-2.2a1 1 0 0 1 1.01-.24 11.47 11.47 0 0 0 3.58.57 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.58a1 1 0 0 1-.24 1.01l-2.21 2.2z"/></svg>
+    </div>
+  </div>
+
+  <!-- Chat body -->
+  <div class="chat-body" id="chatBody">
+
+    <div class="date-label">Today</div>
+
+    <div class="bubble-wrap incoming">
+      <div class="bubble">
+        👋 Hello! Welcome to <strong>RC Agency</strong>.<br>
+        We're here to help you. Please tell us your task or request below and we'll get right on it!
+        <div class="bubble-time">10:02 AM</div>
+      </div>
     </div>
 
-    <form id="nameForm">
-        <input type="text" id="username" placeholder="Enter your name..." required autocomplete="off">
-        <button type="submit">Submit to Registry</button>
-    </form>
-
-    <hr>
-
-    <div class="section-title">Active Platform Users</div>
-    <div class="list-box">
-        <ul id="userList">
-            <p class="empty">Loading registry system records...</p>
-        </ul>
+    <div class="bubble-wrap incoming">
+      <div class="bubble">
+        📋 Just type your task in the box below and tap <strong>Send</strong> — we'll receive it instantly on WhatsApp!
+        <div class="bubble-time">10:02 AM</div>
+      </div>
     </div>
+
+  </div>
+
+  <!-- Input area -->
+  <div class="chat-input-area">
+    <div class="toast" id="toast">✅ Task sent to RC Agency on WhatsApp!</div>
+    <div class="input-row">
+      <button class="emoji-btn" title="Emoji">😊</button>
+      <textarea class="input-box" id="taskInput" placeholder="Type your task here..." rows="1" oninput="autoResize(this)" onkeydown="handleKey(event)"></textarea>
+      <button class="send-btn" onclick="sendTask()" title="Send">
+        <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+      </button>
+    </div>
+  </div>
+
 </div>
 
-<script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getFirestore, collection, addDoc, query, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+<div class="watermark">
+  <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12c0 1.85.5 3.58 1.37 5.08L2 22l5.08-1.35A9.93 9.93 0 0 0 12 22c5.52 0 10-4.48 10-10S17.52 2 12 2zm4.93 13.44c-.21.59-1.23 1.12-1.7 1.19-.46.07-1.03.1-1.66-.1a15.34 15.34 0 0 1-1.5-.56c-2.63-1.14-4.34-3.8-4.47-3.98-.13-.18-1.05-1.4-1.05-2.67s.67-1.9.9-2.16c.24-.26.52-.32.7-.32.17 0 .35.01.5.01.16 0 .38-.06.6.46.21.52.72 1.77.79 1.9.07.13.11.28.02.45-.09.17-.14.28-.27.43-.14.15-.29.34-.41.46-.14.14-.28.28-.12.55.16.27.7 1.15 1.5 1.86.66.59 1.37.92 1.67 1.02.29.1.47.09.64-.06.17-.14.73-.85.93-1.14.19-.29.39-.24.65-.14.27.1 1.68.79 1.97.94.29.14.48.21.55.33.07.12.07.68-.14 1.27z"/></svg>
+  Connected via WhatsApp
+</div>
 
-    // Pre-configured global sandbox keys for immediate verification
-    const firebaseConfig = {
-        apiKey: "AIzaSyAs-DEMO_KEY_NEPA_AI_PROD_84729x",
-        authDomain: "nepa-ai-demo-hub.firebaseapp.com",
-        projectId: "nepa-ai-demo-hub",
-        storageBucket: "nepa-ai-demo-hub.appspot.com",
-        messagingSenderId: "5829104829",
-        appId: "1:5829104829:web:9f8e7d6c5b4a3f2e"
-    };
+<script>
+  function autoResize(el) {
+    el.style.height = 'auto';
+    el.style.height = Math.min(el.scrollHeight, 110) + 'px';
+  }
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    const dbRef = collection(db, "registry");
+  function handleKey(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendTask();
+    }
+  }
 
-    const form = document.getElementById('nameForm');
-    const input = document.getElementById('username');
-    const userList = document.getElementById('userList');
+  function getTime() {
+    const now = new Date();
+    let h = now.getHours(), m = now.getMinutes();
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    h = h % 12 || 12;
+    return h + ':' + (m < 10 ? '0' + m : m) + ' ' + ampm;
+  }
 
-    form.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const nameVal = input.value.trim();
-        if(nameVal) {
-            try {
-                await addDoc(dbRef, {
-                    name: nameVal,
-                    timestamp: new Date().getTime()
-                });
-                input.value = '';
-            } catch (err) {
-                console.error("Transmission error:", err);
-            }
-        }
-    });
+  function addBubble(text, type) {
+    const chatBody = document.getElementById('chatBody');
+    const wrap = document.createElement('div');
+    wrap.className = 'bubble-wrap ' + type;
+    const ticks = type === 'outgoing' ? '<span class="tick">✓✓</span>' : '';
+    wrap.innerHTML = `<div class="bubble">${text}<div class="bubble-time">${getTime()} ${ticks}</div></div>`;
+    chatBody.appendChild(wrap);
+    chatBody.scrollTop = chatBody.scrollHeight;
+  }
 
-    const q = query(dbRef, orderBy("timestamp", "desc"));
-    onSnapshot(q, (snapshot) => {
-        userList.innerHTML = '';
-        if (snapshot.empty) {
-            userList.innerHTML = '<p class="empty">No entries found in this node.</p>';
-            return;
-        }
-        snapshot.forEach((doc) => {
-            const data = doc.data();
-            const timeString = data.timestamp ? new Date(data.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : 'Just now';
-            const li = document.createElement('li');
-            li.innerHTML = `<span class="name">${data.name}</span><span class="time">${timeString}</span>`;
-            userList.appendChild(li);
-        });
-    });
+  function showTyping() {
+    const chatBody = document.getElementById('chatBody');
+    const wrap = document.createElement('div');
+    wrap.className = 'bubble-wrap incoming';
+    wrap.id = 'typingWrap';
+    wrap.innerHTML = `<div class="typing"><span></span><span></span><span></span></div>`;
+    chatBody.appendChild(wrap);
+    chatBody.scrollTop = chatBody.scrollHeight;
+  }
+
+  function removeTyping() {
+    const t = document.getElementById('typingWrap');
+    if (t) t.remove();
+  }
+
+  function showToast() {
+    const toast = document.getElementById('toast');
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 3500);
+  }
+
+  function sendTask() {
+    const input = document.getElementById('taskInput');
+    const task = input.value.trim();
+    if (!task) return;
+
+    // Show user's message
+    addBubble(task.replace(/\n/g, '<br>'), 'outgoing');
+    input.value = '';
+    input.style.height = 'auto';
+
+    // Show toast
+    showToast();
+
+    // Open WhatsApp
+    const phone = '9779840228049'; // Nepal country code +977
+    const message = encodeURIComponent('📋 New Task from RC Agency Website:\n\n' + task);
+    const waUrl = `https://wa.me/${phone}?text=${message}`;
+
+    setTimeout(() => {
+      window.open(waUrl, '_blank');
+    }, 300);
+
+    // Show typing then auto-reply
+    setTimeout(() => showTyping(), 900);
+    setTimeout(() => {
+      removeTyping();
+      addBubble('✅ Got it! Your task has been received by <strong>RC Agency</strong>. We\'ll get back to you soon! 🙏', 'incoming');
+    }, 2800);
+  }
 </script>
+
 </body>
 </html>
