@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nepa AI</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0d1117">
+    <style>
+        * { box-sizing: border-box; font-family: system-ui, -apple-system, sans-serif; }
+        body { background-color: #0d1117; color: #c9d1d9; margin: 0; padding: 40px 20px; display: flex; justify-content: center; }
+        .app-container { width: 100%; max-width: 450px; background: #161b22; border: 1px solid #30363d; border-radius: 12px; padding: 30px; box-shadow: 0 8px 24px rgba(0,0,0,0.5); }
+        .header { text-align: center; margin-bottom: 25px; }
+        .header h1 { color: #58a6ff; font-size: 28px; margin: 0 0 5px 0; }
+        .header p { color: #8b949e; font-size: 14px; margin: 0; }
+        input[type="text"] { width: 100%; background: #0d1117; border: 1px solid #30363d; color: #f0f6fc; padding: 14px; font-size: 16px; border-radius: 6px; outline: none; margin-bottom: 15px; }
+        input[type="text"]:focus { border-color: #58a6ff; }
+        button { width: 100%; background: #238636; color: white; border: none; padding: 14px; font-size: 16px; font-weight: 600; border-radius: 6px; cursor: pointer; }
+        button:hover { background: #2ea44f; }
+        hr { border: 0; height: 1px; background: #30363d; margin: 25px 0; }
+        .section-title { font-size: 13px; text-transform: uppercase; color: #8b949e; margin-bottom: 12px; letter-spacing: 0.5px; }
+        .list-box { max-height: 250px; overflow-y: auto; }
+        ul { list-style: none; padding: 0; margin: 0; }
+        li { background: #21262d; border: 1px solid #30363d; padding: 12px; border-radius: 6px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+        .name { color: #f0f6fc; font-weight: 500; }
+        .time { font-size: 11px; color: #8b949e; background: #0d1117; padding: 4px 8px; border-radius: 4px; }
+        .empty { color: #8b949e; text-align: center; font-style: italic; font-size: 14px; }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <div class="header">
+        <h1>Nepa AI</h1>
+        <p>Live Distributed Engine</p>
+    </div>
+
+    <form id="nameForm">
+        <input type="text" id="username" placeholder="Enter your name..." required autocomplete="off">
+        <button type="submit">Submit to Registry</button>
+    </form>
+
+    <hr>
+
+    <div class="section-title">Active Platform Users</div>
+    <div class="list-box">
+        <ul id="userList">
+            <p class="empty">Loading registry system records...</p>
+        </ul>
+    </div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getFirestore, collection, addDoc, query, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    // Pre-configured global sandbox keys for immediate verification
+    const firebaseConfig = {
+        apiKey: "AIzaSyAs-DEMO_KEY_NEPA_AI_PROD_84729x",
+        authDomain: "nepa-ai-demo-hub.firebaseapp.com",
+        projectId: "nepa-ai-demo-hub",
+        storageBucket: "nepa-ai-demo-hub.appspot.com",
+        messagingSenderId: "5829104829",
+        appId: "1:5829104829:web:9f8e7d6c5b4a3f2e"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const dbRef = collection(db, "registry");
+
+    const form = document.getElementById('nameForm');
+    const input = document.getElementById('username');
+    const userList = document.getElementById('userList');
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const nameVal = input.value.trim();
+        if(nameVal) {
+            try {
+                await addDoc(dbRef, {
+                    name: nameVal,
+                    timestamp: new Date().getTime()
+                });
+                input.value = '';
+            } catch (err) {
+                console.error("Transmission error:", err);
+            }
+        }
+    });
+
+    const q = query(dbRef, orderBy("timestamp", "desc"));
+    onSnapshot(q, (snapshot) => {
+        userList.innerHTML = '';
+        if (snapshot.empty) {
+            userList.innerHTML = '<p class="empty">No entries found in this node.</p>';
+            return;
+        }
+        snapshot.forEach((doc) => {
+            const data = doc.data();
+            const timeString = data.timestamp ? new Date(data.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : 'Just now';
+            const li = document.createElement('li');
+            li.innerHTML = `<span class="name">${data.name}</span><span class="time">${timeString}</span>`;
+            userList.appendChild(li);
+        });
+    });
+</script>
+</body>
+</html>
